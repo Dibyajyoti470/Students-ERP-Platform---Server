@@ -21,7 +21,7 @@ const login = async (req, res) => {
   const { email, password } = req.body;
   try {
     if (!email || !password) {
-      throw new BadRequestError("Please provide email and passwor");
+      throw new BadRequestError("Please provide email and password");
     }
 
     const admin = await Admin.findOne({ email });

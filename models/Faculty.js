@@ -2,7 +2,27 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const AdminSchema = new mongoose.Schema({
+const QualificationSchema = new mongoose.Schema({
+  name: {
+    type: String,
+  },
+  startedIn: {
+    type: Date,
+  },
+  qualifiedIn: {
+    type: Date,
+  },
+  certificate: {
+    type: String,
+  },
+});
+
+const FacultySchema = new mongoose.Schema({
+  facultyID: {
+    type: String,
+    required: [true, "Please provide faculty ID"],
+    unique: true,
+  },
   firstName: {
     type: String,
     required: [true, "Please provide first name"],
@@ -30,6 +50,10 @@ const AdminSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide phone number"],
   },
+  dateOfBirth: {
+    type: Date,
+    required: [true, "Please provide date of birth"],
+  },
   address: {
     locality: {
       type: String,
@@ -52,27 +76,50 @@ const AdminSchema = new mongoose.Schema({
       required: [true, "Please provide country"],
     },
   },
+  joinedAt: {
+    type: Date,
+    required: [true, "Please provide date"],
+  },
   designation: {
     type: String,
     required: [true, "Please provide designation"],
+  },
+  isFullTimeJob: {
+    type: Boolean,
+    required: [true, "Please provide if full time or not"],
+  },
+  qualifications: {
+    type: [QualificationSchema],
+    default: [],
   },
   password: {
     type: String,
     required: [true, "Please provide password"],
     minlength: 4,
   },
+  hasResigned: {
+    type: Boolean,
+  },
+  resignedAt: {
+    type: Date,
+  },
+  departmentID: {
+    type: mongoose.Types.ObjectId,
+    ref: "Department",
+    required: [true, "Please provide department"],
+  },
 });
 
-AdminSchema.pre("save", async function () {
+FacultySchema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-AdminSchema.methods.getName = function () {
+FacultySchema.methods.getName = function () {
   return `${this.firstName} ${this.middleName + " "}${this.lastName}`;
 };
 
-AdminSchema.methods.createJWT = function () {
+FacultySchema.methods.createJWT = function () {
   return jwt.sign(
     {
       userId: this._id,
@@ -85,9 +132,9 @@ AdminSchema.methods.createJWT = function () {
   );
 };
 
-AdminSchema.methods.comparePassword = async function (candidatePassword) {
+FacultySchema.methods.comparePassword = async function (candidatePassword) {
   const isMatch = await bcrypt.compare(candidatePassword, this.password);
   return isMatch;
 };
 
-module.exports = mongoose.model("Admin", AdminSchema);
+module.exports = mongoose.model("Faculty", FacultySchema);

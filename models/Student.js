@@ -1,8 +1,14 @@
-const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const QualificationSchema = require("./utils/Qualification");
 
-const AdminSchema = new mongoose.Schema({
+const StudentSchema = new mongoose.Schema({
+  studentID: {
+    type: String,
+    required: [true, "Please provide student ID"],
+    unique: true,
+  },
   firstName: {
     type: String,
     required: [true, "Please provide first name"],
@@ -26,9 +32,18 @@ const AdminSchema = new mongoose.Schema({
     ],
     unique: true,
   },
+  password: {
+    type: String,
+    required: [true, "Please provide password"],
+    minlength: 4,
+  },
   phoneNo: {
     type: String,
     required: [true, "Please provide phone number"],
+  },
+  dateOfBirth: {
+    type: Date,
+    required: [true, "Please provide date of birth"],
   },
   address: {
     locality: {
@@ -52,27 +67,35 @@ const AdminSchema = new mongoose.Schema({
       required: [true, "Please provide country"],
     },
   },
-  designation: {
-    type: String,
-    required: [true, "Please provide designation"],
+  enrolledAt: {
+    type: Date,
+    required: [true, "Please provide date"],
   },
-  password: {
+  mode: {
     type: String,
-    required: [true, "Please provide password"],
-    minlength: 4,
+    required: [true, "Please provide mode of course [Regular/Corresponding]"],
+  },
+  qualifications: {
+    type: [QualificationSchema],
+    default: [],
+  },
+  courseID: {
+    type: mongoose.Types.ObjectId,
+    ref: "Course",
+    required: [true, "Please provide course ID"],
   },
 });
 
-AdminSchema.pre("save", async function () {
+StudentSchema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-AdminSchema.methods.getName = function () {
+StudentSchema.methods.getName = function () {
   return `${this.firstName} ${this.middleName + " "}${this.lastName}`;
 };
 
-AdminSchema.methods.createJWT = function () {
+StudentSchema.methods.createJWT = function () {
   return jwt.sign(
     {
       userId: this._id,
@@ -85,9 +108,9 @@ AdminSchema.methods.createJWT = function () {
   );
 };
 
-AdminSchema.methods.comparePassword = async function (candidatePassword) {
+StudentSchema.methods.comparePassword = async function (candidatePassword) {
   const isMatch = await bcrypt.compare(candidatePassword, this.password);
   return isMatch;
 };
 
-module.exports = mongoose.model("Admin", AdminSchema);
+module.exports = mongoose.model("Student", StudentSchema);
